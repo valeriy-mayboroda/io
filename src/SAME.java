@@ -26,7 +26,7 @@ import java.util.List;
  строка4        строка4            SAME строка4
  строка5                           REMOVED строка5
  */
-public class SAME
+public class Same
 {
     public static List<LineItem> lines = new ArrayList<LineItem>();
     public static List<String> list1 = new ArrayList<String>();//Список строк из файла №1
