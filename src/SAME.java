@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-
 /*
  Файлы содержат строки, file2 является обновленной версией file1, часть строк совпадают.
  Нужно создать объединенную версию строк, записать их в список lines
@@ -28,45 +27,39 @@ import java.util.List;
  */
 public class Same
 {
-    public static List<LineItem> lines = new ArrayList<LineItem>();
-    public static List<String> list1 = new ArrayList<String>();//Список строк из файла №1
-    public static List<String> list2 = new ArrayList<String>();//Список строк из файла №2
-    public static boolean operation = true;//operation = true - pазрешить ADDED или REMOVED
+    public static List<LineItem> lines = new ArrayList<LineItem>();//Список вывода результата
+    public static List<String>   list1 = new ArrayList<String>();//Список строк из файла №1
+    public static List<String>   list2 = new ArrayList<String>();//Список строк из файла №2
+    public static boolean        permitAdded_Removed = true;//permitAdded_Removed = true - pазрешить ADDED или REMOVED
     public static void main(String[] args) throws IOException
     {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        String filename1 = reader.readLine();
-        String filename2 = reader.readLine();
+        String fileName1 = reader.readLine();
+        String fileName2 = reader.readLine();
         reader.close();
-
-        list1 = makelist(filename1);
-        list2 = makelist(filename2);
-
+        list1 = makelist(fileName1);
+        list2 = makelist(fileName2);
         String line1 = "";
         String line2 = "";
-
-        for (int i = 0; i < list1.size() || i < list2.size();)
-        {
-            line1 = list1.isEmpty()? null   : list1.get(i);
-            line2 = list2.isEmpty()? ""     : list2.get(i);
-            boolean listsnotempty = !list1.isEmpty() && !list2.isEmpty();
-
-            boolean permitREMOVED = operation
+        while (list1.size() > 0 || list2.size() > 0) {
+            line1 = list1.isEmpty()? null : list1.get(0);
+            line2 = list2.isEmpty()? null : list2.get(0);
+            boolean listsNotempty = !list1.isEmpty() && !list2.isEmpty();
+            boolean permitRemoved = permitAdded_Removed
                     && (list2.isEmpty()
-                    || (listsnotempty && ((i + 1) < list1.size() && list1.get(i + 1).equals(line2))));
-            boolean permitADD     = operation
+                    || (listsNotempty && (list1.size() > 1 && list1.get(1).equals(line2))));
+            boolean permitAdded   = permitAdded_Removed
                     && (list1.isEmpty()
-                    || (listsnotempty && ((i + 1) < list2.size() && list2.get(i + 1).equals(line1))));
-            boolean permitSAME    = listsnotempty && line1.equals(line2);
-
-            if (permitREMOVED) {
-                makeREMOVED(i);
+                    || (listsNotempty && (list2.size() > 1 && list2.get(1).equals(line1))));
+            boolean permitSame    = listsNotempty && line1.equals(line2);
+            if (permitRemoved) {
+                makeRemoved();
             }
-            else if (permitADD) {
-                makeADDED(i);
+            else if (permitAdded) {
+                makeAdded();
             }
-            else if (permitSAME) {
-                makeSAME(i);
+            else if (permitSame) {
+                makeSame();
             }
             else {
                 System.out.println("Данные в файлах не корректны");
@@ -77,10 +70,9 @@ public class Same
             System.out.println(l.type + " " + l.line);
         }
     }
-    public static ArrayList<String> makelist(String filename) throws IOException
-    {
+    public static ArrayList<String> makelist(String fileName) throws IOException {
         ArrayList<String> list = new ArrayList<String>();
-        BufferedReader filereader = new BufferedReader(new FileReader(filename));
+        BufferedReader filereader = new BufferedReader(new FileReader(fileName));
         String line;
         while((line = filereader.readLine()) != null)
         {
@@ -89,37 +81,31 @@ public class Same
         filereader.close();
         return list;
     }
-    public static void makeSAME(int j)
-    {
-        lines.add(new LineItem(Type.SAME, list1.get(j)));
-        list1.remove(j);
-        list2.remove(j);
-        operation = true;
+    public static void makeSame() {
+        lines.add(new LineItem(Type.SAME, list1.get(0)));
+        list1.remove(0);
+        list2.remove(0);
+        permitAdded_Removed = true;
     }
-    public static void makeADDED(int j)
-    {
-        lines.add(new LineItem(Type.ADDED, list2.get(j)));
-        list2.remove(j);
-        operation = false;
+    public static void makeAdded() {
+        lines.add(new LineItem(Type.ADDED, list2.get(0)));
+        list2.remove(0);
+        permitAdded_Removed = false;
     }
-    public static void makeREMOVED(int j)
-    {
-        lines.add(new LineItem(Type.REMOVED, list1.get(j)));
-        list1.remove(j);
-        operation = false;
+    public static void makeRemoved() {
+        lines.add(new LineItem(Type.REMOVED, list1.get(0)));
+        list1.remove(0);
+        permitAdded_Removed = false;
     }
-    public static enum Type
-    {
+    public static enum Type {
         ADDED,        //добавлена новая строка
         REMOVED,      //удалена строка
         SAME          //без изменений
     }
-    public static class LineItem
-    {
+    public static class LineItem {
         public Type type;
         public String line;
-        public LineItem(Type type, String line)
-        {
+        public LineItem(Type type, String line) {
             this.type = type;
             this.line = line;
         }
