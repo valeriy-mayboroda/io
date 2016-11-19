@@ -33,11 +33,26 @@ public class Same {
         String fileName1 = reader.readLine();
         String fileName2 = reader.readLine();
         reader.close();
-        list1 = makelist(fileName1);
-        list2 = makelist(fileName2);
+        list1 = createList(fileName1);
+        list2 = createList(fileName2);
+        updateList(list1, list2);
+        /*printResult(lines);*/
+    }
+    public static List<String> createList(String fileName) throws IOException {
+        ArrayList<String> list = new ArrayList<String>();
+        BufferedReader filereader = new BufferedReader(new FileReader(fileName));
+        String line;
+        while((line = filereader.readLine()) != null)
+        {
+            list.add(line);
+        }
+        filereader.close();
+        return list;
+    }
+    public static void updateList(List<String> list1, List<String> list2){
         String line1 = "";
         String line2 = "";
-        while (list1.size() > 0 && list2.size() > 0) {
+        while (list1.size() > 0 && list2.size() > 0 && !mistake) {
             line1 = list1.get(0);
             line2 = list2.get(0);
             boolean permitRemoved = permitAddedRemoved && list1.size() > 1 && list1.get(1).equals(line2);
@@ -54,35 +69,21 @@ public class Same {
             }
             else {
                 mistake = true;
-                break;
             }
         }
-        /*Если один из листов пуст, еще возможна одна операция ADDED или REMOVED.
-        Если после этого лист не пуст - ошибка, т.к. SAME уже невозможно.*/
-        if (permitAddedRemoved && list2.isEmpty() && !list1.isEmpty() && !mistake) {
+        /*Если один из листов пуст, еще возможна одна операция ADDED или REMOVED*/
+        //Если пуст лист2, а лист1 нет
+        if (permitAddedRemoved && !list1.isEmpty() && !mistake) {
             makeAddedRemoved(Type.REMOVED);
         }
-        else if (permitAddedRemoved && list1.isEmpty() && !list2.isEmpty() && !mistake) {
+        //Если пуст лист1, а лист2 нет
+        if (permitAddedRemoved && !list2.isEmpty() && !mistake) {
             makeAddedRemoved(Type.ADDED);
         }
+        /*Если после этого один из листов все еще не пуст - ошибка, т.к. SAME уже невозможно (один лист пуст, другой - нет)*/
         if (!list1.isEmpty() || !list2.isEmpty()) {
             mistake = true;
         }
-        /*for (LineItem l : lines) {
-            System.out.println(l.type + " " + l.line);
-        }
-        if (mistake) System.out.println("Mistake file");*/
-    }
-    public static ArrayList<String> makelist(String fileName) throws IOException {
-        ArrayList<String> list = new ArrayList<String>();
-        BufferedReader filereader = new BufferedReader(new FileReader(fileName));
-        String line;
-        while((line = filereader.readLine()) != null)
-        {
-            list.add(line);
-        }
-        filereader.close();
-        return list;
     }
     public static void makeSame() {
         lines.add(new LineItem(Type.SAME, list1.get(0)));
@@ -100,6 +101,12 @@ public class Same {
             list1.remove(0);
         }
         permitAddedRemoved = false;
+    }
+    public static void printResult(List<LineItem> list){
+        for (LineItem l : list) {
+            System.out.println(l.type + " " + l.line);
+        }
+        if (mistake) System.out.println("Mistake file");
     }
     public static enum Type {
         ADDED,        //добавлена новая строка
