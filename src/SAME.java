@@ -54,53 +54,47 @@ public class Same {
         String line2 = "";
         boolean permitAddedRemoved = true;//permitAdded_Removed = true - pазрешить ADDED или REMOVED
         boolean            mistake = false;//mistake = true - ошибка - операции ADDED - REMOVED невозможно разделить операцией SAME
-        while (list1.size() > 0 && list2.size() > 0 && !mistake) {
+        while (list1.size() > 0 && list2.size() > 0) {
             line1 = list1.get(0);
             line2 = list2.get(0);
             boolean permitRemoved = permitAddedRemoved && list1.size() > 1 && list1.get(1).equals(line2);
             boolean permitAdded   = permitAddedRemoved && list2.size() > 1 && list2.get(1).equals(line1);
             boolean permitSame    = line1.equals(line2);
-            if (permitRemoved) {
-                permitAddedRemoved = makeAddedRemoved(Type.REMOVED);
-            }
-            else if (permitAdded) {
-                permitAddedRemoved = makeAddedRemoved(Type.ADDED);
-            }
-            else if (permitSame) {
-                permitAddedRemoved = makeSame();
+            if (!(permitRemoved || permitAdded || permitSame))
+                return true; //mistake = true
+            if (permitSame) {
+                makeSame();
+                permitAddedRemoved = true;
             }
             else {
-                mistake = true;
+                makeAddedRemoved(permitRemoved ? false : true);//Type.ADDED = true, Type.REMOVED = false
+                permitAddedRemoved = false;
             }
         }
         /*Если один из листов пуст, еще возможна одна операция ADDED или REMOVED*/
-        mistake = removeLast(permitAddedRemoved, mistake);//Если уже есть mistake, то она снова вернется без каких-либо действий
+        if (permitAddedRemoved)
+            mistake = removeLast();
         return mistake;
     }
-    public boolean removeLast(boolean permitAddedRemoved, boolean mistakeoperation) {
-        //Если пуст лист2, а лист1 нет
-        if (permitAddedRemoved && !list1.isEmpty() && !mistakeoperation) {
-            permitAddedRemoved = makeAddedRemoved(Type.REMOVED);
-        }
-        //Если пуст лист1, а лист2 нет
-        if (permitAddedRemoved && !list2.isEmpty() && !mistakeoperation) {
-            permitAddedRemoved = makeAddedRemoved(Type.ADDED);
-        }
+    public boolean removeLast() {
+        //Если пуст лист2, а лист1 нет, - операция REMOVED (false), иначе - ADDED (true)
+        if (!list1.isEmpty())
+            makeAddedRemoved(false);
+        else makeAddedRemoved(true);
         /*Если после этого один из листов все еще не пуст - ошибка, т.к. SAME уже невозможно (один лист пуст, другой - нет)*/
         if (!list1.isEmpty() || !list2.isEmpty()) {
-            mistakeoperation = true;
+            return true;
         }
-        return mistakeoperation;
+        return false;
     }
-    /*makeAddedRemoved(Type type) и makeSame() возвращают разрешение операции ADDED или REMOVED*/
-    public boolean makeSame() {
+    public void makeSame() {
         lines.add(new LineItem(Type.SAME, list1.get(0)));
         list1.remove(0);
         list2.remove(0);
-        return true;
     }
-    public boolean makeAddedRemoved(Type type) {
-        if (type.equals(Type.ADDED)){
+    public void makeAddedRemoved(boolean actualType) {
+        //actualType = true - ADDED, actualType = false - REMOVED
+        if (actualType){
             lines.add(new LineItem(Type.ADDED, list2.get(0)));
             list2.remove(0);
         }
@@ -108,7 +102,6 @@ public class Same {
             lines.add(new LineItem(Type.REMOVED, list1.get(0)));
             list1.remove(0);
         }
-        return false;
     }
     public void printResult(List<LineItem> list, boolean mistake) {
         for (LineItem l : list){
